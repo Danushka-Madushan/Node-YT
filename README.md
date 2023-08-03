@@ -1,1 +1,2 @@
-# Node-YT
+# Node-TypeScript
+Express web apps using TypeScript
