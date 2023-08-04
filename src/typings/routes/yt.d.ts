@@ -4,11 +4,4 @@ declare module 'youtube/fetch' {
             url?: string
         }
     }
-
-    export namespace YTConvertRequest {
-        interface TBody {
-            id: string,
-            token: string
-        }
-    }
 }

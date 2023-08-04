@@ -2,7 +2,7 @@ import { Router, Request, Response } from 'express';
 import { ExpressResponse } from '../core/utils/response.js';
 const app = Router()
 
-import { YTConvertRequest, YTFetchRequest } from 'youtube/fetch';
+import { YTFetchRequest } from 'youtube/fetch';
 import { fetchYoutube, requestDownload } from '../core/scraper/yt.js';
 import { fetchFacebook } from '../core/scraper/fb.js';
 
@@ -22,7 +22,7 @@ app.get('/yt/fetch', async (req: Request<object, object, object, YTFetchRequest.
         })
     }
 
-    const { data } = await fetchYoutube(url)
+    const data = await fetchYoutube(url)
 
     if (data.mess.length !== 0) {
         return ExpressResponse(res, false, 400, {
@@ -80,18 +80,5 @@ app.get('/yt/fetch', async (req: Request<object, object, object, YTFetchRequest.
     return ExpressResponse(res, true, 200, response)
 })
 
-/* Body */
-/*
-{
-    id: VIDEO ID,
-    token: video token from fetch request
-}
-*/
-app.post('/yt/convert', async (req: Request<object, object, YTConvertRequest.TBody>, res: Response) => {
-    const { body: { id, token } } = req
-    
-    const data = await requestDownload(id, token)
-    return ExpressResponse(res, true, 200, data)
-})
 
 export default app
