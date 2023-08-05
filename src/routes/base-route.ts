@@ -6,7 +6,6 @@ import { TQuery, TStreamSession, TStreamsArray, ytResponse } from 'youtube/fetch
 import { fetchYoutube } from '../core/scraper/yt.js';
 import { generateMD5 } from '../core/utils/hash.js';
 import { findRecord, insertRecord } from '../core/redis/cache.js';
-import got from 'got';
 
 const VIDRegex = /^https?:\/\/w{3}[.]youtube[.]com\/watch\?v=(?<vid>.+)$/i
 
