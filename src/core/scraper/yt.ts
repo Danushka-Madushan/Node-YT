@@ -1,8 +1,10 @@
-import got from 'got';
+import axios from 'axios'
+import { TLoaderResponse, TQualities } from 'youtube/fetch';
+import { findRecord } from '../redis/cache.js';
 
 export const fetchYoutube = async (vid: string) => {
-    const { body } = await got('https://www.youtube.com/watch', {
-        searchParams: {
+    const { data } = await axios.get<string>('https://www.youtube.com/watch', {
+        params: {
             'v': vid
         },
         headers: {
@@ -13,36 +15,55 @@ export const fetchYoutube = async (vid: string) => {
 
     const Regex = /var ytInitialPlayerResponse = (?<ytInitialPlayerResponse>{.+?});var meta/gm
 
-    return Regex.exec(body)
+    return Regex.exec(data)
 }
 
-export const requestDownload = async (id: string, token: string) => {
-    const response = await got.post('https://yt1s.com/api/ajaxConvert/convert', {
+export const initiateConvertProcess = async (quality: TQualities, token: string) => {
+    const vid = await findRecord(token)
+    if (!vid) {
+        return {}
+    }
+    const { data } = await axios.get<TLoaderResponse>('https://loader.to/ajax/download.php', {
+        params: {
+            'format': quality,
+            'url': `https://www.youtube.com/watch?v=${ vid }`
+        },
         headers: {
-            'Accept': '*/*',
-            'Accept-Language': 'en-US,en;q=0.9',
-            'Cache-Control': 'no-cache',
-            'Connection': 'keep-alive',
-            'Content-Type': 'application/x-www-form-urlencoded; charset=UTF-8',
-            'Cookie': '_gid=GA1.2.482438218.1691075328; _ga_SHGNTSN7T4=GS1.1.1691153945.6.0.1691153945.0.0.0; _ga=GA1.2.1863704939.1687515344',
-            'DNT': '1',
-            'Origin': 'https://yt1s.com',
-            'Pragma': 'no-cache',
-            'Referer': 'https://yt1s.com/en607',
-            'Sec-Fetch-Dest': 'empty',
-            'Sec-Fetch-Mode': 'cors',
-            'Sec-Fetch-Site': 'same-origin',
-            'User-Agent': 'Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/115.0.0.0 Safari/537.36 Edg/115.0.1901.188',
-            'X-Requested-With': 'XMLHttpRequest',
+            'authority': 'loader.to',
+            'accept': '*/*',
+            'accept-language': 'en-US,en;q=0.9',
+            'user-agent': 'Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/115.0.0.0 Safari/537.36 Edg/115.0.1901.188'
+        }
+    });
+
+    delete data['content']
+
+    return data
+}
+
+export const requestDownload = async (token: string) => {
+    const { data } = await axios.get<object>('https://p.oceansaver.in/ajax/progress.php', {
+        params: {
+            'id': token
+        },
+        headers: {
+            'authority': 'p.oceansaver.in',
+            'accept': '*/*',
+            'accept-language': 'en-US,en;q=0.9',
+            'cache-control': 'no-cache',
+            'dnt': '1',
+            'origin': 'https://en.loader.to',
+            'pragma': 'no-cache',
+            'referer': 'https://en.loader.to/',
             'sec-ch-ua': '"Not/A)Brand";v="99", "Microsoft Edge";v="115", "Chromium";v="115"',
             'sec-ch-ua-mobile': '?0',
-            'sec-ch-ua-platform': '"Windows"'
-        },
-        form: {
-            'vid': id,
-            'k': token
+            'sec-ch-ua-platform': '"Windows"',
+            'sec-fetch-dest': 'empty',
+            'sec-fetch-mode': 'cors',
+            'sec-fetch-site': 'cross-site',
+            'user-agent': 'Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/115.0.0.0 Safari/537.36 Edg/115.0.1901.188'
         }
-    }).json<object>();
+    });
 
-    return response
+    return data
 }

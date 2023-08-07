@@ -34,11 +34,6 @@ declare module 'youtube/fetch' {
         height: number
     }
 
-    type TStreamsArray = Pick<TFormats, 'lastModified' | 'quality' | 'size' | 'qualityLabel' | 'url'> & {
-        'mimeType': string | boolean,
-        convertRequired: boolean
-    }
-
     interface ytResponse {
         streamingData: {
             expiresInSeconds: string,
@@ -65,10 +60,16 @@ declare module 'youtube/fetch' {
         }
     }
 
-    interface TStreamSession {
-        [key: string]: {
-            video?: string,
-            audio?: string
+    type TQualities = '1440' | '1080' | '720' | '480' | '320' | 'mp3'
+
+    interface TLoaderResponse {
+        "success": boolean,
+        "id": string,
+        "content"?: string,
+        "title": string,
+        "info": {
+            "image": string,
+            "title": string
         }
     }
 }
