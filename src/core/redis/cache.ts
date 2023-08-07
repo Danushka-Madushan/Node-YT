@@ -4,10 +4,7 @@ import { RedisClient } from './connection.js'
 export const findRecord = async (key: string) => {
     const dest = await RedisClient.get(key)
     if (dest) {
-        return JSON.parse(dest) as {
-            video: string,
-            audio: string
-        }
+        return dest
     }
     return false
 }

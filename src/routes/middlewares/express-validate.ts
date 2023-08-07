@@ -4,9 +4,9 @@ import Joi, { ValidationResult } from 'joi';
 
 const ExpressSchemas = async (req: Request): Promise<ValidationResult | boolean> => {
     switch (req.originalUrl) {
-        case '/api/yt/convert' : {
+        case '/yt/request' : {
             return await Joi.object({
-                id: Joi.string().required(),
+                quality: Joi.string().valid('1440', '1080', '720', '480', '320', 'mp3').required(),
                 token: Joi.string().required()
             }).validateAsync(req.body) as ValidationResult
         }
