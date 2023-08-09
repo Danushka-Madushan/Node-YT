@@ -6,19 +6,21 @@ import { TQualities, TQuery, ytResponse } from 'youtube/fetch';
 import { fetchYoutube, initiateConvertProcess, requestDownload } from '../core/scraper/yt.js';
 import { generateMD5 } from '../core/utils/hash.js';
 import { insertRecord } from '../core/redis/cache.js';
+import { YouTubeRegEx } from '../config/config.js';
 
-const VIDRegex = /^https?:\/\/w{3}[.]youtube[.]com\/watch\?v=(?<vid>[A-z0-9-_]+)/i
-
+/* GET VIDEO DETAILS 
+   /api/yt/fetch?url=https://www.youtube.com/watch?v=J_V5IGvADoQ
+*/
 app.get('/yt/fetch', async (req: Request<object, object, object, TQuery>, res: Response) => {
     const { query: { url } } = req
 
-    if (!url || !VIDRegex.test(url)) {
+    if (!url || !YouTubeRegEx.test(url)) {
         return ExpressResponse(res, false, 400, {
             message: 'INVALID_URL'
         })
     }
 
-    const _id = VIDRegex.exec(url)
+    const _id = YouTubeRegEx.exec(url)
 
     if (!_id || !_id.groups) {
         return ExpressResponse(res, false, 400, {
@@ -45,16 +47,14 @@ app.get('/yt/fetch', async (req: Request<object, object, object, TQuery>, res: R
             response: response
         })
 
-        if (token) {
-            await insertRecord(token, videoId)
-        }
+        if (token) { await insertRecord(token, videoId) }
         return
     }
 
     return ExpressResponse(res, false, 400, 'ERROR')
 })
 
-/*
+/* START DOWNLOAD PROCESS
 {
     "quality": '1440' | '1080' | '720' | '480' | '320' | 'mp3',
     "token": "fipWTpQUB5QjzRyZ9fQaPMngFTO"
@@ -69,9 +69,16 @@ app.post('/yt/request', async (req: Request<object, object, { quality: TQualitie
     }
 
     const response = await initiateConvertProcess(quality, token)
-    return ExpressResponse(res, true, 200, response)
+    if (response) {
+        return ExpressResponse(res, true, 200, response)
+    }
+
+    return ExpressResponse(res, false, 400, {
+        message: 'Token Expired'
+    })
 })
 
+/* GET CONVERSATIONS PROCESS STATUS */
 app.get('/yt/convert/:id', async (req, res) => {
     const { params: { id } } = req
 
